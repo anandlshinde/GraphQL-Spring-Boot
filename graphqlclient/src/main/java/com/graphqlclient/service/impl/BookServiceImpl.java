@@ -40,4 +40,23 @@ public class BookServiceImpl implements BookService {
 
         return bookList;
     }
+
+    @Override
+    public Book getBook(int bookId) {
+        String document="""
+                        query{
+                                    getBook(bookId: 0){
+                                         id
+                                         name
+                                         pages
+                                         }
+                                
+                                }
+                """;
+        String newDocument = document.replace("0", String.valueOf(bookId));
+        String getBook = "getBook";
+        Book book = httpGraphQlClient.document(newDocument)
+                .retrieve(getBook).toEntity(Book.class).block();
+        return book;
+    }
 }
