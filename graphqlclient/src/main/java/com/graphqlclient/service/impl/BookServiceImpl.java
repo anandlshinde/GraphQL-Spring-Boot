@@ -3,13 +3,15 @@ package com.graphqlclient.service.impl;
 import com.graphqlclient.model.Book;
 import com.graphqlclient.service.BookService;
 import lombok.AllArgsConstructor;
+import org.springframework.graphql.client.ClientResponseField;
 import org.springframework.graphql.client.HttpGraphQlClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
-
+//https://docs.spring.io/spring-graphql/docs/current-SNAPSHOT/reference/html/#samples
 @Service
 public class BookServiceImpl implements BookService {
 
@@ -35,10 +37,31 @@ public class BookServiceImpl implements BookService {
                                 }
                 """;
         String allBooks = "allBooks";
-        List<Book> bookList = httpGraphQlClient.document(document)
-                .retrieve(allBooks).toEntityList(Book.class).block();
+        List<Book> allBooks1 = httpGraphQlClient.document(document)
+                //  .retrieve(allBooks).toEntityList(Book.class).block();
 
-        return bookList;
+                .execute()
+
+
+                .map(response -> {
+                    if (!response.isValid()) {
+                        // Request failure...
+                        System.out.println("Failed not valid response");
+                    }
+
+                    ClientResponseField field = response.field("allBooks");
+                    if (!field.hasValue()) {
+                        if (field.getError() != null) {
+                            System.out.println("feild has error");
+                        } else {
+                            // Optional field set to null...
+                        }
+                    }
+
+                    return field.toEntityList(Book.class);
+                }).block();
+
+        return allBooks1;
     }
 
     @Override
